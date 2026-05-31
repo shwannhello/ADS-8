@@ -26,7 +26,6 @@ class BST {
             node = new Node(value);
             return;
         }
-
         if (value < node->key) {
             insert(node->left, value);
         } else if (value > node->key) {
@@ -40,7 +39,7 @@ class BST {
         if (node == nullptr) return 0;
         int leftDepth = depth(node->left);
         int rightDepth = depth(node->right);
-        return 1 + std::max(leftDepth, rightDepth);
+        return (leftDepth > rightDepth ? leftDepth : rightDepth) + 1;
     }
 
     bool search(Node* node, const T& value) const {
@@ -86,15 +85,14 @@ class BST {
     std::vector<std::pair<T, int>> getNodesSortedByCount() const {
         std::vector<std::pair<T, int>> nodes;
         collectNodes(root, nodes);
-        std::sort(nodes.begin(), nodes.end(),
-                  [](const std::pair<T, int>& a, const std::pair<T, int>& b) {
-                      return a.second > b.second;
-                  });
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            for (size_t j = i + 1; j < nodes.size(); ++j) {
+                if (nodes[i].second < nodes[j].second) {
+                    std::swap(nodes[i], nodes[j]);
+                }
+            }
+        }
         return nodes;
-    }
-
-    int getUniqueWordsCount() const {
-        return getNodesSortedByCount().size();
     }
 };
 
