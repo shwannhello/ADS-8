@@ -2,98 +2,81 @@
 #ifndef INCLUDE_BST_H_
 #define INCLUDE_BST_H_
 
-#include <utility>
-#include <vector>
-#include <algorithm>
 #include <string>
+#include <vector>
 
 template<typename T>
 class BST {
  private:
-    struct Node {
-        T key;
-        int count;
-        Node* left;
-        Node* right;
+  struct Node {
+    T key;
+    int count;
+    Node* left;
+    Node* right;
 
-        explicit Node(const T& val) : key(val), count(1), left(nullptr), right(nullptr) {}
-    };
+    explicit Node(const T& k)
+        : key(k), count(1), left(nullptr), right(nullptr) {}
+  };
 
-    Node* root;
+  Node* root;
 
-    void insert(Node*& node, const T& value) {
-        if (node == nullptr) {
-            node = new Node(value);
-            return;
-        }
-        if (value < node->key) {
-            insert(node->left, value);
-        } else if (value > node->key) {
-            insert(node->right, value);
-        } else {
-            node->count++;
-        }
+  Node* addNode(Node* root, const T& data) {
+    if (!root) {
+      return new Node(data);
+    } else if (data < root->key) {
+      root->left = addNode(root->left, data);
+    } else if (data > root->key) {
+      root->right = addNode(root->right, data);
+    } else {
+      root->count++;
     }
+    return root;
+  }
 
-    int depth(Node* node) const {
-        if (node == nullptr) return 0;
-        int leftDepth = depth(node->left);
-        int rightDepth = depth(node->right);
-        return (leftDepth > rightDepth ? leftDepth : rightDepth) + 1;
-    }
+  int searchNode(Node* root, const T& data) const {
+    if (!root) return 0;
+    if (data == root->key) return root->count;
+    if (data < root->key) return searchNode(root->left, data);
+    return searchNode(root->right, data);
+  }
 
-    bool search(Node* node, const T& value) const {
-        if (node == nullptr) return false;
-        if (value == node->key) return true;
-        if (value < node->key) return search(node->left, value);
-        return search(node->right, value);
-    }
+  int depthNode(Node* root) const {
+    if (!root) return 0;
+    int leftDepth = depthNode(root->left);
+    int rightDepth = depthNode(root->right);
+    return (leftDepth > rightDepth ?
+      leftDepth : rightDepth) + 1;
+  }
 
-    void clear(Node* node) {
-        if (node == nullptr) return;
-        clear(node->left);
-        clear(node->right);
-        delete node;
+  void inorder(Node* root, std::vector<std::pair<T, int>>& result) const {
+    if (root) {
+      inorder(root->left, result);
+      result.emplace_back(root->key, root->count);
+      inorder(root->right, result);
     }
+  }
 
-    void collectNodes(Node* node, std::vector<std::pair<T, int>>& nodes) const {
-        if (node == nullptr) return;
-        collectNodes(node->left, nodes);
-        nodes.push_back(std::make_pair(node->key, node->count));
-        collectNodes(node->right, nodes);
+  void delTree(Node* root) {
+    if (root) {
+      delTree(root->left);
+      delTree(root->right);
+      delete root;
     }
+  }
 
  public:
-    BST() : root(nullptr) {}
+  BST() : root(nullptr) {}
+  ~BST() { delTree(root); }
 
-    ~BST() {
-        clear(root);
-    }
-
-    void insert(const T& value) {
-        insert(root, value);
-    }
-
-    int depth() const {
-        return depth(root);
-    }
-
-    bool search(const T& value) const {
-        return search(root, value);
-    }
-
-    std::vector<std::pair<T, int>> getNodesSortedByCount() const {
-        std::vector<std::pair<T, int>> nodes;
-        collectNodes(root, nodes);
-        for (size_t i = 0; i < nodes.size(); ++i) {
-            for (size_t j = i + 1; j < nodes.size(); ++j) {
-                if (nodes[i].second < nodes[j].second) {
-                    std::swap(nodes[i], nodes[j]);
-                }
-            }
-        }
-        return nodes;
-    }
+  void insert(const T& data) { root = addNode(root, data); }
+  int search(T data) const { return searchNode(root, data); }
+  int depth() const {
+    int fullDepth = depthNode(root);
+    return fullDepth > 0 ? fullDepth - 1 : 0;
+  }
+  void getFreqList(std::vector<std::pair<T, int>>& list) const {
+    inorder(root, list);
+  }
 };
 
 #endif  // INCLUDE_BST_H_
